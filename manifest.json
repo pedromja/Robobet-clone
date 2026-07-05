@@ -1,0 +1,27 @@
+{
+    "name": "FootballBot Pro",
+    "short_name": "FootballBot",
+    "description": "Plataforma de Análise e Automação Esportiva - Bots de futebol com filtros personalizados",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0a0e17",
+    "theme_color": "#0a0e17",
+    "orientation": "portrait",
+    "scope": "/",
+    "lang": "pt",
+    "categories": ["sports", "entertainment"],
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230a0e17'/><text x='96' y='130' text-anchor='middle' font-size='120'>⚽</text></svg>",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230a0e17'/><text x='256' y='350' text-anchor='middle' font-size='320'>⚽</text></svg>",
+            "sizes": "512x512",
+            "type": "image/svg+xml"
+        }
+    ],
+    "screenshots": [],
+    "prefer_related_applications": false
+}

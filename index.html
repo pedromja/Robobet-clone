@@ -1,0 +1,3029 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e17">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="FootballBot - Plataforma de Análise e Automação Esportiva">
+    <title>FootballBot Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-card: #1a2332;
+            --bg-card-hover: #1e2940;
+            --accent: #10b981;
+            --accent-dim: #059669;
+            --accent-glow: rgba(16, 185, 129, 0.2);
+            --fire: #f59e0b;
+            --fire-glow: rgba(245, 158, 11, 0.2);
+            --danger: #ef4444;
+            --danger-dim: #dc2626;
+            --info: #3b82f6;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            --border: #1e293b;
+            --border-light: #334155;
+            --success: #22c55e;
+            --warning: #eab308;
+            --gradient-accent: linear-gradient(135deg, #10b981, #059669);
+            --gradient-fire: linear-gradient(135deg, #f59e0b, #d97706);
+            --gradient-danger: linear-gradient(135deg, #ef4444, #dc2626);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 14, 23, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 16px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header-logo .icon { font-size: 24px; }
+        .header-logo .highlight { color: var(--accent); }
+
+        .header-actions { display: flex; gap: 8px; }
+
+        .header-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover, .header-btn:active {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .header-btn.has-badge { position: relative; }
+        .header-btn.has-badge::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            border: 2px solid var(--bg-primary);
+        }
+
+        /* Main Content */
+        .main {
+            padding-top: 56px;
+            padding-bottom: 72px;
+            min-height: 100vh;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 14, 23, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 env(safe-area-inset-bottom, 8px);
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 6px 12px;
+            border: none;
+            background: none;
+            color: var(--text-dim);
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .tab-item .tab-icon { font-size: 22px; transition: all 0.2s; }
+        .tab-item.active { color: var(--accent); }
+        .tab-item.active .tab-icon { transform: scale(1.1); }
+
+        /* Page Sections */
+        .page { display: none; padding: 12px 16px; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .card:hover { border-color: var(--border-light); }
+        .card:active { transform: scale(0.99); }
+
+        /* Match Card */
+        .match-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .match-card:active { transform: scale(0.99); }
+
+        .match-league {
+            padding: 8px 14px;
+            background: var(--bg-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .match-league .live-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            margin-right: 4px;
+            display: inline-block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .match-body { padding: 14px; }
+
+        .match-teams {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .match-team {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .match-team.away { flex-direction: row-reverse; text-align: right; }
+
+        .team-logo {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .team-name {
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .match-score {
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .score-display {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .score-time {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .score-time.live {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        .match-odds {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .odd-btn {
+            padding: 6px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            min-width: 56px;
+        }
+
+        .odd-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .odd-btn .odd-label { font-size: 9px; color: var(--text-dim); display: block; margin-bottom: 2px; }
+        .odd-btn .odd-value { font-size: 13px; font-weight: 700; }
+
+        /* Match indicators */
+        .match-indicators {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .indicator {
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .indicator.fire {
+            background: var(--fire-glow);
+            color: var(--fire);
+        }
+
+        .indicator.ball {
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        .indicator.danger-ind {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .indicator.info-ind {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--info);
+        }
+
+        /* Bot Card */
+        .bot-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .bot-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .bot-name {
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bot-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+        }
+
+        .bot-status.paused { background: var(--warning); box-shadow: 0 0 8px rgba(234, 179, 8, 0.4); }
+        .bot-status.stopped { background: var(--text-dim); box-shadow: none; }
+
+        .bot-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .bot-tag {
+            padding: 3px 8px;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .bot-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .bot-stat {
+            text-align: center;
+            padding: 6px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+        }
+
+        .bot-stat-value {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .bot-stat-label {
+            font-size: 9px;
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bot-stat-value.positive { color: var(--success); }
+        .bot-stat-value.negative { color: var(--danger); }
+
+        /* Filter Builder */
+        .filter-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .filter-section-header {
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .filter-section-header:hover { background: var(--bg-card-hover); }
+
+        .filter-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-section-body {
+            padding: 0 14px 14px;
+            display: none;
+        }
+
+        .filter-section.open .filter-section-body { display: block; }
+        .filter-section-header .chevron { transition: transform 0.2s; font-size: 12px; color: var(--text-dim); }
+        .filter-section.open .filter-section-header .chevron { transform: rotate(180deg); }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-input::placeholder { color: var(--text-dim); }
+
+        .form-select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .form-row .form-group { flex: 1; }
+
+        /* Range Slider */
+        .range-container { position: relative; padding: 8px 0; }
+
+        .range-input {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--border);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .range-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .range-value {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-top: 4px;
+        }
+
+        /* Toggle Switch */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-row:last-child { border-bottom: none; }
+
+        .toggle-info { flex: 1; }
+        .toggle-title { font-size: 13px; font-weight: 600; }
+        .toggle-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input { display: none; }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: var(--border-light);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:active { transform: scale(0.97); }
+
+        .btn-primary {
+            background: var(--gradient-accent);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover { box-shadow: 0 4px 20px var(--accent-glow); }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-fire {
+            background: var(--gradient-fire);
+            color: #1a1a1a;
+            width: 100%;
+        }
+
+        .btn-danger {
+            background: var(--gradient-danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        /* Alert Card */
+        .alert-card {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-card.fire-alert { border-left-color: var(--fire); }
+        .alert-card.danger-alert { border-left-color: var(--danger); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .alert-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .alert-time { font-size: 10px; color: var(--text-dim); font-weight: 600; }
+        .alert-title { font-size: 13px; font-weight: 700; }
+        .alert-body { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-icon { font-size: 20px; margin-bottom: 4px; }
+        .stat-value { font-size: 20px; font-weight: 800; }
+        .stat-label { font-size: 10px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; }
+
+        /* Filter Presets */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .preset-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-card:hover { border-color: var(--accent); }
+        .preset-card:active { transform: scale(0.97); }
+        .preset-icon { font-size: 24px; margin-bottom: 6px; }
+        .preset-name { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+        .preset-desc { font-size: 10px; color: var(--text-dim); line-height: 1.3; }
+
+        /* Search */
+        .search-bar {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-bar input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .search-bar .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        /* Filter Chips */
+        .filter-chips {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .filter-chips::-webkit-scrollbar { display: none; }
+
+        .filter-chip {
+            padding: 6px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip.active {
+            background: var(--accent-glow);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            z-index: 1;
+        }
+
+        .modal-title { font-size: 16px; font-weight: 700; }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body { padding: 16px; }
+
+        /* League List */
+        .league-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .league-item:hover { background: var(--bg-card); }
+        .league-item:last-child { border-bottom: none; }
+
+        .league-flag { font-size: 18px; }
+        .league-name { font-size: 13px; font-weight: 600; }
+        .league-country { font-size: 11px; color: var(--text-dim); }
+
+        .league-check {
+            margin-left: auto;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .league-check.selected {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            left: 16px;
+            right: 16px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.error { border-left: 3px solid var(--danger); }
+        .toast.info { border-left: 3px solid var(--info); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Settings */
+        .settings-group {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .settings-group-title {
+            padding: 10px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--bg-secondary);
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item:hover { background: var(--bg-card-hover); }
+        .settings-item-icon { font-size: 18px; width: 24px; text-align: center; }
+        .settings-item-text { flex: 1; }
+        .settings-item-title { font-size: 13px; font-weight: 600; }
+        .settings-item-desc { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+        .settings-item-arrow { color: var(--text-dim); font-size: 14px; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-dim);
+        }
+
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state .title { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary); }
+        .empty-state .desc { font-size: 13px; line-height: 1.5; }
+
+        /* Match Detail Stats */
+        .stat-bar-container { margin: 8px 0; }
+
+        .stat-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .stat-bar {
+            height: 4px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .stat-bar-fill.home { background: var(--accent); }
+        .stat-bar-fill.away { background: var(--info); }
+
+        /* Notification badge */
+        .notification-count {
+            background: var(--danger);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Install Banner */
+        .install-banner {
+            background: var(--gradient-accent);
+            border-radius: var(--radius);
+            padding: 14px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .install-banner.hidden { display: none; }
+        .install-banner-icon { font-size: 28px; }
+        .install-banner-text { flex: 1; }
+        .install-banner-title { font-size: 13px; font-weight: 700; color: white; }
+        .install-banner-desc { font-size: 11px; color: rgba(255,255,255,0.8); }
+        .install-banner-btn {
+            padding: 8px 16px;
+            background: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 700;
+            color: #059669;
+            cursor: pointer;
+        }
+
+        /* Loading skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: var(--radius);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Responsive */
+        @media (min-width: 480px) {
+            .main { max-width: 480px; margin: 0 auto; }
+            .header { max-width: 480px; margin: 0 auto; left: 50%; transform: translateX(-50%); }
+            .tab-nav { max-width: 480px; margin: 0 auto; left: 50%; transform: translateX(-50%); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-logo">
+            <span class="icon">⚽</span>
+            <span>Football<span class="highlight">Bot</span></span>
+        </div>
+        <div class="header-actions">
+            <button class="header-btn has-badge" onclick="showNotifications()" title="Notificações">🔔</button>
+            <button class="header-btn" onclick="showSettings()" title="Configurações">⚙️</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main" id="main">
+
+        <!-- ===== HOME PAGE ===== -->
+        <div class="page active" id="page-home">
+            <div id="install-banner" class="install-banner hidden">
+                <div class="install-banner-icon">📲</div>
+                <div class="install-banner-text">
+                    <div class="install-banner-title">Instalar FootballBot</div>
+                    <div class="install-banner-desc">Adicione ao ecrã inicial para acesso rápido</div>
+                </div>
+                <button class="install-banner-btn" id="install-btn">Instalar</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-value" id="live-count">0</div>
+                    <div class="stat-label">Ao Vivo</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🤖</div>
+                    <div class="stat-value" id="active-bots">0</div>
+                    <div class="stat-label">Bots Ativos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔔</div>
+                    <div class="stat-value" id="alerts-today">0</div>
+                    <div class="stat-label">Alertas Hoje</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value" id="win-rate">--%</div>
+                    <div class="stat-label">Win Rate</div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <div class="section-title">🔥 Alertas Recentes</div>
+                <span class="section-badge" id="alert-badge">0</span>
+            </div>
+            <div id="recent-alerts">
+                <div class="empty-state">
+                    <div class="icon">🔔</div>
+                    <div class="title">Sem alertas ainda</div>
+                    <div class="desc">Crie um bot e ative-o para receber alertas em tempo real</div>
+                </div>
+            </div>
+
+            <div class="section-header" style="margin-top:20px">
+                <div class="section-title">⚽ Jogos em Destaque</div>
+            </div>
+            <div id="featured-matches">
+                <div class="skeleton" style="height:120px;margin-bottom:10px"></div>
+                <div class="skeleton" style="height:120px;margin-bottom:10px"></div>
+            </div>
+        </div>
+
+        <!-- ===== MATCHES PAGE ===== -->
+        <div class="page" id="page-matches">
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Pesquisar equipas, ligas..." id="match-search" oninput="filterMatches()">
+            </div>
+
+            <div class="filter-chips">
+                <button class="filter-chip active" onclick="setMatchFilter('all', this)">Todos</button>
+                <button class="filter-chip" onclick="setMatchFilter('live', this)">⚡ Ao Vivo</button>
+                <button class="filter-chip" onclick="setMatchFilter('upcoming', this)">📅 Próximos</button>
+                <button class="filter-chip" onclick="setMatchFilter('today', this)">📆 Hoje</button>
+                <button class="filter-chip" onclick="setMatchFilter('finished', this)">✅ Terminados</button>
+            </div>
+
+            <div id="matches-list">
+                <div class="skeleton" style="height:120px;margin-bottom:10px"></div>
+                <div class="skeleton" style="height:120px;margin-bottom:10px"></div>
+                <div class="skeleton" style="height:120px;margin-bottom:10px"></div>
+            </div>
+        </div>
+
+        <!-- ===== BOTS PAGE ===== -->
+        <div class="page" id="page-bots">
+            <div class="section-header">
+                <div class="section-title">🤖 Meus Bots</div>
+                <button class="btn btn-sm btn-outline" onclick="openBotCreator()">+ Novo Bot</button>
+            </div>
+
+            <div class="filter-chips">
+                <button class="filter-chip active" onclick="setBotFilter('all', this)">Todos</button>
+                <button class="filter-chip" onclick="setBotFilter('active', this)">🟢 Ativos</button>
+                <button class="filter-chip" onclick="setBotFilter('paused', this)">🟡 Pausados</button>
+                <button class="filter-chip" onclick="setBotFilter('stopped', this)">🔴 Parados</button>
+            </div>
+
+            <div id="bots-list">
+                <div class="empty-state">
+                    <div class="icon">🤖</div>
+                    <div class="title">Nenhum bot criado</div>
+                    <div class="desc">Crie o seu primeiro bot com filtros personalizados para receber alertas</div>
+                </div>
+            </div>
+
+            <div style="margin-top:14px">
+                <div class="section-header">
+                    <div class="section-title">📦 Templates Prontos</div>
+                </div>
+                <div class="preset-grid">
+                    <div class="preset-card" onclick="loadPreset('over25')">
+                        <div class="preset-icon">⚽</div>
+                        <div class="preset-name">Over 2.5 Goals</div>
+                        <div class="preset-desc">Jogos com alta probabilidade de mais de 2 golos</div>
+                    </div>
+                    <div class="preset-card" onclick="loadPreset('btts')">
+                        <div class="preset-icon">🎯</div>
+                        <div class="preset-name">BTTS (Ambos Marcam)</div>
+                        <div class="preset-desc">Ambas as equipas marcam golos</div>
+                    </div>
+                    <div class="preset-card" onclick="loadPreset('corners')">
+                        <div class="preset-icon">🚩</div>
+                        <div class="preset-name">Over 9.5 Cantos</div>
+                        <div class="preset-desc">Mais de 9 cantos no jogo</div>
+                    </div>
+                    <div class="preset-card" onclick="loadPreset('favorite')">
+                        <div class="preset-icon">🏆</div>
+                        <div class="preset-name">Favorito a Vencer</div>
+                        <div class="preset-desc">Favorito a ganhar com odds baixas</div>
+                    </div>
+                    <div class="preset-card" onclick="loadPreset('drawHT')">
+                        <div class="preset-icon">⏱️</div>
+                        <div class="preset-name">Empate ao Intervalo</div>
+                        <div class="preset-desc">Jogos empatados ao intervalo</div>
+                    </div>
+                    <div class="preset-card" onclick="loadPreset('cards')">
+                        <div class="preset-icon">🟨</div>
+                        <div class="preset-name">Over 3.5 Cartões</div>
+                        <div class="preset-desc">Jogos com muitos cartões</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ANALYSIS PAGE ===== -->
+        <div class="page" id="page-analysis">
+            <div class="section-header">
+                <div class="section-title">📊 Análise & Estatísticas</div>
+            </div>
+
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Pesquisar equipa ou jogador..." id="analysis-search">
+            </div>
+
+            <div class="filter-chips">
+                <button class="filter-chip active" onclick="setAnalysisView('overview', this)">Visão Geral</button>
+                <button class="filter-chip" onclick="setAnalysisView('leagues', this)">🏆 Ligas</button>
+                <button class="filter-chip" onclick="setAnalysisView('standings', this)">📋 Classificações</button>
+                <button class="filter-chip" onclick="setAnalysisView('h2h', this)">⚔️ H2H</button>
+            </div>
+
+            <div id="analysis-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🏟️</div>
+                        <div class="stat-value">150+</div>
+                        <div class="stat-label">Ligas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚽</div>
+                        <div class="stat-value">5K+</div>
+                        <div class="stat-label">Equipas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-value">10K+</div>
+                        <div class="stat-label">Jogos Análisados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value">73%</div>
+                        <div class="stat-label">Precisão Média</div>
+                    </div>
+                </div>
+
+                <div class="section-header" style="margin-top:14px">
+                    <div class="section-title">🏆 Ligas Populares</div>
+                </div>
+                <div id="leagues-list"></div>
+            </div>
+        </div>
+
+        <!-- ===== SETTINGS PAGE ===== -->
+        <div class="page" id="page-settings">
+            <div class="section-header">
+                <div class="section-title">⚙️ Configurações</div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Notificações</div>
+                <div class="settings-item">
+                    <div class="settings-item-icon">📱</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Notificações Push</div>
+                        <div class="settings-item-desc">Receber alertas no dispositivo</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-push" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-item" onclick="openTelegramConfig()">
+                    <div class="settings-item-icon">✈️</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Telegram Bot</div>
+                        <div class="settings-item-desc" id="telegram-status">Não configurado</div>
+                    </div>
+                    <div class="settings-item-arrow">›</div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-icon">🔊</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Som de Alerta</div>
+                        <div class="settings-item-desc">Reproduzir som ao receber alertas</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-sound" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-icon">📳</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Vibração</div>
+                        <div class="settings-item-desc">Vibrar ao receber alertas</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-vibrate" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Dados & API</div>
+                <div class="settings-item" onclick="openApiConfig()">
+                    <div class="settings-item-icon">🔑</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Chave API</div>
+                        <div class="settings-item-desc" id="api-status">Não configurada</div>
+                    </div>
+                    <div class="settings-item-arrow">›</div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-icon">🔄</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Intervalo de Atualização</div>
+                        <div class="settings-item-desc" id="refresh-interval">30 segundos</div>
+                    </div>
+                    <div class="settings-item-arrow">›</div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-icon">💾</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Cache de Dados</div>
+                        <div class="settings-item-desc" id="cache-size">0 KB</div>
+                    </div>
+                    <div class="settings-item-arrow" onclick="clearCache()">🗑️</div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Aparência</div>
+                <div class="settings-item">
+                    <div class="settings-item-icon">🌙</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Tema</div>
+                        <div class="settings-item-desc">Escuro (padrão)</div>
+                    </div>
+                    <div class="settings-item-arrow">›</div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-icon">🌍</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Idioma</div>
+                        <div class="settings-item-desc">Português</div>
+                    </div>
+                    <div class="settings-item-arrow">›</div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-group-title">Dados</div>
+                <div class="settings-item" onclick="exportData()">
+                    <div class="settings-item-icon">📤</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Exportar Dados</div>
+                        <div class="settings-item-desc">Exportar bots e configurações</div>
+                    </div>
+                    <div class="settings-item-arrow">›</div>
+                </div>
+                <div class="settings-item" onclick="importData()">
+                    <div class="settings-item-icon">📥</div>
+                    <div class="settings-item-text">
+                        <div class="settings-item-title">Importar Dados</div>
+                        <div class="settings-item-desc">Importar bots de backup</div>
+                    </div>
+                    <div class="settings-item-arrow">›</div>
+                </div>
+            </div>
+
+            <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:11px">
+                FootballBot Pro v1.0.0<br>
+                © 2026 — Plataforma de Análise Esportiva<br>
+                Dados fornecidos por APIs de futebol
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="tab-nav">
+        <button class="tab-item active" onclick="switchTab('home', this)">
+            <span class="tab-icon">🏠</span>
+            <span>Início</span>
+        </button>
+        <button class="tab-item" onclick="switchTab('matches', this)">
+            <span class="tab-icon">⚽</span>
+            <span>Jogos</span>
+        </button>
+        <button class="tab-item" onclick="switchTab('bots', this)">
+            <span class="tab-icon">🤖</span>
+            <span>Bots</span>
+        </button>
+        <button class="tab-item" onclick="switchTab('analysis', this)">
+            <span class="tab-icon">📊</span>
+            <span>Análise</span>
+        </button>
+        <button class="tab-item" onclick="switchTab('settings', this)">
+            <span class="tab-icon">⚙️</span>
+            <span>Opções</span>
+        </button>
+    </nav>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="modal-bot-creator">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">🤖 Criar Bot</div>
+                <button class="modal-close" onclick="closeModal('modal-bot-creator')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nome do Bot</label>
+                    <input type="text" class="form-input" id="bot-name" placeholder="Ex: Over 2.5 Premium">
+                </div>
+
+                <!-- Match Filters -->
+                <div class="filter-section open" onclick="toggleFilterSection(this)">
+                    <div class="filter-section-header">
+                        <div class="filter-section-title">⚽ Filtros de Golos</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="filter-section-body">
+                        <div class="form-group">
+                            <label class="form-label">Total de Golos Mínimo</label>
+                            <div class="range-container">
+                                <input type="range" class="range-input" id="goals-min" min="0" max="10" value="0" oninput="updateRange(this, 'goals-min-val')">
+                                <div class="range-value" id="goals-min-val">0</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Total de Golos Máximo</label>
+                            <div class="range-container">
+                                <input type="range" class="range-input" id="goals-max" min="0" max="10" value="10" oninput="updateRange(this, 'goals-max-val')">
+                                <div class="range-value" id="goals-max-val">10</div>
+                            </div>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Ambas Marcam (BTTS)</div>
+                                <div class="toggle-desc">Filtrar jogos onde ambas marcam</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="filter-btts">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Golos Casa ≥</label>
+                            <input type="number" class="form-input" id="home-goals-min" placeholder="0" min="0" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Golos Fora ≥</label>
+                            <input type="number" class="form-input" id="away-goals-min" placeholder="0" min="0" max="10">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Odds Filters -->
+                <div class="filter-section" onclick="toggleFilterSection(this)">
+                    <div class="filter-section-header">
+                        <div class="filter-section-title">📈 Filtros de Odds</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="filter-section-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Odds Casa (min)</label>
+                                <input type="number" class="form-input" id="odds-home-min" placeholder="1.01" step="0.01" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Odds Casa (max)</label>
+                                <input type="number" class="form-input" id="odds-home-max" placeholder="10.00" step="0.01" min="1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Odds Empate (min)</label>
+                                <input type="number" class="form-input" id="odds-draw-min" placeholder="1.01" step="0.01" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Odds Empate (max)</label>
+                                <input type="number" class="form-input" id="odds-draw-max" placeholder="10.00" step="0.01" min="1">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Odds Fora (min)</label>
+                                <input type="number" class="form-input" id="odds-away-min" placeholder="1.01" step="0.01" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Odds Fora (max)</label>
+                                <input type="number" class="form-input" id="odds-away-max" placeholder="10.00" step="0.01" min="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Corners Filters -->
+                <div class="filter-section" onclick="toggleFilterSection(this)">
+                    <div class="filter-section-header">
+                        <div class="filter-section-title">🚩 Filtros de Cantos</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="filter-section-body">
+                        <div class="form-group">
+                            <label class="form-label">Total Cantos Mínimo</label>
+                            <div class="range-container">
+                                <input type="range" class="range-input" id="corners-min" min="0" max="20" value="0" oninput="updateRange(this, 'corners-min-val')">
+                                <div class="range-value" id="corners-min-val">0</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Total Cantos Máximo</label>
+                            <div class="range-container">
+                                <input type="range" class="range-input" id="corners-max" min="0" max="20" value="20" oninput="updateRange(this, 'corners-max-val')">
+                                <div class="range-value" id="corners-max-val">20</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cards Filters -->
+                <div class="filter-section" onclick="toggleFilterSection(this)">
+                    <div class="filter-section-header">
+                        <div class="filter-section-title">🟨 Filtros de Cartões</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="filter-section-body">
+                        <div class="form-group">
+                            <label class="form-label">Cartões Amarelos Mínimo</label>
+                            <input type="number" class="form-input" id="yellow-cards-min" placeholder="0" min="0" max="20">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cartões Vermelhos Mínimo</label>
+                            <input type="number" class="form-input" id="red-cards-min" placeholder="0" min="0" max="5">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Filters -->
+                <div class="filter-section" onclick="toggleFilterSection(this)">
+                    <div class="filter-section-header">
+                        <div class="filter-section-title">📊 Filtros Estatísticos</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="filter-section-body">
+                        <div class="form-group">
+                            <label class="form-label">Posse de Bola Casa ≥ (%)</label>
+                            <input type="number" class="form-input" id="possession-min" placeholder="50" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Remates à Baliza Mínimo (total)</label>
+                            <input type="number" class="form-input" id="shots-on-target-min" placeholder="0" min="0" max="30">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">xG Mínimo (Expected Goals)</label>
+                            <input type="number" class="form-input" id="xg-min" placeholder="0.0" step="0.1" min="0" max="10">
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Apenas com xG disponível</div>
+                                <div class="toggle-desc">Filtrar jogos com dados xG</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="filter-xg-only">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Filters -->
+                <div class="filter-section" onclick="toggleFilterSection(this)">
+                    <div class="filter-section-header">
+                        <div class="filter-section-title">⏱️ Filtros de Tempo</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="filter-section-body">
+                        <div class="form-group">
+                            <label class="form-label">Minuto Mínimo do Jogo</label>
+                            <input type="number" class="form-input" id="minute-min" placeholder="0" min="0" max="90">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Minuto Máximo do Jogo</label>
+                            <input type="number" class="form-input" id="minute-max" placeholder="90" min="0" max="90">
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Apenas 1ª Parte</div>
+                                <div class="toggle-desc">Monitorizar só a primeira parte</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="filter-first-half">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Apenas 2ª Parte</div>
+                                <div class="toggle-desc">Monitorizar só a segunda parte</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="filter-second-half">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Form Filters -->
+                <div class="filter-section" onclick="toggleFilterSection(this)">
+                    <div class="filter-section-header">
+                        <div class="filter-section-title">📈 Filtros de Forma</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="filter-section-body">
+                        <div class="form-group">
+                            <label class="form-label">PPG Casa ≥ (Pontos por Jogo)</label>
+                            <input type="number" class="form-input" id="ppg-home-min" placeholder="0.0" step="0.1" min="0" max="3">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">PPG Fora ≥ (Pontos por Jogo)</label>
+                            <input type="number" class="form-input" id="ppg-away-min" placeholder="0.0" step="0.1" min="0" max="3">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Invencibilidade Casa ≥ (%)</label>
+                            <input type="number" class="form-input" id="invincibility-home" placeholder="0" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Invencibilidade Fora ≥ (%)</label>
+                            <input type="number" class="form-input" id="invincibility-away" placeholder="0" min="0" max="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- League Restriction -->
+                <div class="filter-section" onclick="toggleFilterSection(this)">
+                    <div class="filter-section-header">
+                        <div class="filter-section-title">🏟️ Restrição de Ligas</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="filter-section-body">
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Todas as Ligas</div>
+                                <div class="toggle-desc">Monitorizar todas as ligas disponíveis</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="filter-all-leagues" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <button class="btn btn-sm btn-secondary" style="margin-top:8px;width:100%" onclick="event.stopPropagation();openLeagueSelector()">
+                            Selecionar Ligas
+                        </button>
+                        <div id="selected-leagues" style="margin-top:8px;font-size:11px;color:var(--text-dim)"></div>
+                    </div>
+                </div>
+
+                <!-- Bot Behavior -->
+                <div class="filter-section open" onclick="toggleFilterSection(this)">
+                    <div class="filter-section-header">
+                        <div class="filter-section-title">🤖 Comportamento do Bot</div>
+                        <span class="chevron">▼</span>
+                    </div>
+                    <div class="filter-section-body">
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Bot</label>
+                            <select class="form-select" id="bot-type">
+                                <option value="live">Ao Vivo — Monitoriza jogos em tempo real</option>
+                                <option value="prematch">Pré-Jogo — Analisa antes do início</option>
+                                <option value="both">Ambos — Pré-jogo + ao vivo</option>
+                            </select>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Combo Indicador</div>
+                                <div class="toggle-desc">Alertar quando FIRE + BALL ativos</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="filter-combo">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Confirmação Antecipada</div>
+                                <div class="toggle-desc">Alertar resultado antes do final</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="filter-early-confirm">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-fire" style="margin-top:14px" onclick="saveBot()">
+                    🚀 Criar e Ativar Bot
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telegram Config Modal -->
+    <div class="modal-overlay" id="modal-telegram">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">✈️ Configurar Telegram</div>
+                <button class="modal-close" onclick="closeModal('modal-telegram')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="card" style="background:var(--bg-secondary);margin-bottom:14px">
+                    <p style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+                        Para receber notificações no Telegram, precisa de criar um bot no Telegram e obter o token. 
+                        Siga os passos abaixo:
+                    </p>
+                    <ol style="font-size:12px;color:var(--text-secondary);line-height:2;padding-left:20px;margin-top:8px">
+                        <li>Abra o Telegram e procure por <strong>@BotFather</strong></li>
+                        <li>Envie <strong>/newbot</strong> e siga as instruções</li>
+                        <li>Copie o token que receber</li>
+                        <li>Comece uma conversa com o seu bot</li>
+                        <li>Clique em "Obter Chat ID" abaixo</li>
+                    </ol>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Token do Bot</label>
+                    <input type="text" class="form-input" id="telegram-token" placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Chat ID</label>
+                    <input type="text" class="form-input" id="telegram-chat-id" placeholder="Seu Chat ID">
+                </div>
+                <button class="btn btn-sm btn-secondary" style="margin-bottom:14px;width:100%" onclick="getChatId()">
+                    🔍 Obter Chat ID
+                </button>
+                <button class="btn btn-sm btn-secondary" style="margin-bottom:14px;width:100%" onclick="testTelegram()">
+                    📤 Enviar Teste
+                </button>
+                <button class="btn btn-primary" onclick="saveTelegramConfig()">
+                    💾 Guardar Configuração
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Config Modal -->
+    <div class="modal-overlay" id="modal-api">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">🔑 Configurar API</div>
+                <button class="modal-close" onclick="closeModal('modal-api')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="card" style="background:var(--bg-secondary);margin-bottom:14px">
+                    <p style="font-size:12px;color:var(--text-secondary);line-height:1.6">
+                        Escolha a API de dados para futebol. Recomendamos <strong>API-Football</strong> (gratuita até 100 req/dia).
+                        Registe-se em <strong>api-football.com</strong> ou <strong>rapidapi.com</strong> para obter a sua chave.
+                    </p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Provedor de API</label>
+                    <select class="form-select" id="api-provider">
+                        <option value="api-football">API-Football (Recomendado)</option>
+                        <option value="football-data">Football-Data.org</option>
+                        <option value="highlightly">Highlightly</option>
+                        <option value="demo">Modo Demo (sem API real)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Chave da API</label>
+                    <input type="text" class="form-input" id="api-key" placeholder="Cole a sua chave API aqui">
+                </div>
+                <button class="btn btn-sm btn-secondary" style="margin-bottom:14px;width:100%" onclick="testApi()">
+                    🧪 Testar Conexão
+                </button>
+                <button class="btn btn-primary" onclick="saveApiConfig()">
+                    💾 Guardar Configuração
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Match Detail Modal -->
+    <div class="modal-overlay" id="modal-match-detail">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">📊 Detalhe do Jogo</div>
+                <button class="modal-close" onclick="closeModal('modal-match-detail')">✕</button>
+            </div>
+            <div class="modal-body" id="match-detail-content"></div>
+        </div>
+    </div>
+
+    <!-- League Selector Modal -->
+    <div class="modal-overlay" id="modal-leagues">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">🏟️ Selecionar Ligas</div>
+                <button class="modal-close" onclick="closeModal('modal-leagues')">✕</button>
+            </div>
+            <div class="modal-body" id="league-selector-content"></div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+    // ==========================================
+    // FOOTBALLBOT PRO - Main Application
+    // ==========================================
+
+    // ---- State Management ----
+    const APP_STATE = {
+        bots: JSON.parse(localStorage.getItem('fb_bots') || '[]'),
+        alerts: JSON.parse(localStorage.getItem('fb_alerts') || '[]'),
+        settings: JSON.parse(localStorage.getItem('fb_settings') || '{}'),
+        telegramConfig: JSON.parse(localStorage.getItem('fb_telegram') || '{}'),
+        apiConfig: JSON.parse(localStorage.getItem('fb_api') || '{"provider":"demo","key":""}'),
+        selectedLeagues: [],
+        currentMatchFilter: 'all',
+        currentBotFilter: 'all',
+        matches: [],
+        liveMatches: [],
+    };
+
+    // ---- Leagues Database ----
+    const LEAGUES_DB = [
+        { id: 39, name: 'Premier League', country: 'Inglaterra', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+        { id: 140, name: 'La Liga', country: 'Espanha', flag: '🇪🇸' },
+        { id: 135, name: 'Serie A', country: 'Itália', flag: '🇮🇹' },
+        { id: 78, name: 'Bundesliga', country: 'Alemanha', flag: '🇩🇪' },
+        { id: 61, name: 'Ligue 1', country: 'França', flag: '🇫🇷' },
+        { id: 94, name: 'Primeira Liga', country: 'Portugal', flag: '🇵🇹' },
+        { id: 2, name: 'Champions League', country: 'Europa', flag: '🏆' },
+        { id: 3, name: 'Europa League', country: 'Europa', flag: '🏆' },
+        { id: 88, name: 'Eredivisie', country: 'Holanda', flag: '🇳🇱' },
+        { id: 144, name: 'Jupiler Pro League', country: 'Bélgica', flag: '🇧🇪' },
+        { id: 253, name: 'MLS', country: 'EUA', flag: '🇺🇸' },
+        { id: 71, name: 'Serie A', country: 'Brasil', flag: '🇧🇷' },
+        { id: 262, name: 'Liga MX', country: 'México', flag: '🇲🇽' },
+        { id: 128, name: 'Liga Profesional', country: 'Argentina', flag: '🇦🇷' },
+        { id: 179, name: 'Allsvenskan', country: 'Suécia', flag: '🇸🇪' },
+        { id: 119, name: 'Superliga', country: 'Dinamarca', flag: '🇩🇰' },
+        { id: 203, name: 'Süper Lig', country: 'Turquia', flag: '🇹🇷' },
+        { id: 207, name: 'Super League', country: 'China', flag: '🇨🇳' },
+        { id: 98, name: 'J1 League', country: 'Japão', flag: '🇯🇵' },
+        { id: 292, name: 'K League 1', country: 'Coreia do Sul', flag: '🇰🇷' },
+        { id: 169, name: 'Super League', country: 'Suíça', flag: '🇨🇭' },
+        { id: 195, name: 'Premiership', country: 'Escócia', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' },
+        { id: 106, name: 'Ekstraklasa', country: 'Polónia', flag: '🇵🇱' },
+        { id: 239, name: 'Eliteserien', country: 'Noruega', flag: '🇳🇴' },
+    ];
+
+    // ---- Tab Navigation ----
+    function switchTab(tabId, el) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        document.getElementById('page-' + tabId).classList.add('active');
+        el.classList.add('active');
+    }
+
+    // ---- Toast Notifications ----
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ---- Modal Management ----
+    function openModal(id) {
+        document.getElementById(id).classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    // Close modal on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
+    });
+
+    // ---- Filter Section Toggle ----
+    function toggleFilterSection(section) {
+        section.classList.toggle('open');
+    }
+
+    // ---- Range Slider ----
+    function updateRange(input, displayId) {
+        document.getElementById(displayId).textContent = input.value;
+    }
+
+    // ---- Bot Creator ----
+    function openBotCreator() {
+        openModal('modal-bot-creator');
+    }
+
+    // ---- Save Bot ----
+    function saveBot() {
+        const name = document.getElementById('bot-name').value.trim();
+        if (!name) {
+            showToast('Dê um nome ao bot', 'error');
+            return;
+        }
+
+        const bot = {
+            id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+            name: name,
+            status: 'active',
+            createdAt: new Date().toISOString(),
+            filters: {
+                goals: {
+                    min: parseInt(document.getElementById('goals-min').value) || 0,
+                    max: parseInt(document.getElementById('goals-max').value) || 10,
+                    btts: document.getElementById('filter-btts').checked,
+                    homeMin: parseInt(document.getElementById('home-goals-min').value) || null,
+                    awayMin: parseInt(document.getElementById('away-goals-min').value) || null,
+                },
+                odds: {
+                    homeMin: parseFloat(document.getElementById('odds-home-min').value) || null,
+                    homeMax: parseFloat(document.getElementById('odds-home-max').value) || null,
+                    drawMin: parseFloat(document.getElementById('odds-draw-min').value) || null,
+                    drawMax: parseFloat(document.getElementById('odds-draw-max').value) || null,
+                    awayMin: parseFloat(document.getElementById('odds-away-min').value) || null,
+                    awayMax: parseFloat(document.getElementById('odds-away-max').value) || null,
+                },
+                corners: {
+                    min: parseInt(document.getElementById('corners-min').value) || 0,
+                    max: parseInt(document.getElementById('corners-max').value) || 20,
+                },
+                cards: {
+                    yellowMin: parseInt(document.getElementById('yellow-cards-min').value) || null,
+                    redMin: parseInt(document.getElementById('red-cards-min').value) || null,
+                },
+                stats: {
+                    possessionMin: parseInt(document.getElementById('possession-min').value) || null,
+                    shotsOnTargetMin: parseInt(document.getElementById('shots-on-target-min').value) || null,
+                    xgMin: parseFloat(document.getElementById('xg-min').value) || null,
+                    xgOnly: document.getElementById('filter-xg-only').checked,
+                },
+                time: {
+                    minuteMin: parseInt(document.getElementById('minute-min').value) || 0,
+                    minuteMax: parseInt(document.getElementById('minute-max').value) || 90,
+                    firstHalf: document.getElementById('filter-first-half').checked,
+                    secondHalf: document.getElementById('filter-second-half').checked,
+                },
+                form: {
+                    ppgHomeMin: parseFloat(document.getElementById('ppg-home-min').value) || null,
+                    ppgAwayMin: parseFloat(document.getElementById('ppg-away-min').value) || null,
+                    invincibilityHome: parseInt(document.getElementById('invincibility-home').value) || null,
+                    invincibilityAway: parseInt(document.getElementById('invincibility-away').value) || null,
+                },
+                leagues: {
+                    all: document.getElementById('filter-all-leagues').checked,
+                    selected: [...APP_STATE.selectedLeagues],
+                },
+                behavior: {
+                    type: document.getElementById('bot-type').value,
+                    combo: document.getElementById('filter-combo').checked,
+                    earlyConfirm: document.getElementById('filter-early-confirm').checked,
+                }
+            },
+            stats: { matches: 0, alerts: 0, wins: 0, accuracy: 0 }
+        };
+
+        APP_STATE.bots.push(bot);
+        saveBots();
+        renderBots();
+        updateHomeStats();
+        closeModal('modal-bot-creator');
+        showToast(`Bot "${name}" criado e ativo!`, 'success');
+        document.getElementById('bot-name').value = '';
+    }
+
+    function saveBots() {
+        localStorage.setItem('fb_bots', JSON.stringify(APP_STATE.bots));
+    }
+
+    // ---- Render Bots ----
+    function renderBots() {
+        const container = document.getElementById('bots-list');
+        const filtered = APP_STATE.bots.filter(b => {
+            if (APP_STATE.currentBotFilter === 'all') return true;
+            return b.status === APP_STATE.currentBotFilter;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🤖</div>
+                    <div class="title">Nenhum bot encontrado</div>
+                    <div class="desc">Crie o seu primeiro bot com filtros personalizados</div>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(bot => {
+            const statusClass = bot.status === 'active' ? '' : bot.status === 'paused' ? 'paused' : 'stopped';
+            const filterTags = [];
+            if (bot.filters.goals.btts) filterTags.push('BTTS');
+            if (bot.filters.goals.min > 0) filterTags.push(`Over ${bot.filters.goals.min}.5G`);
+            if (bot.filters.corners.min > 0) filterTags.push(`Over ${bot.filters.corners.min}.5C`);
+            if (bot.filters.cards.yellowMin) filterTags.push(`Over ${bot.filters.cards.yellowMin - 0.5} Cartões`);
+            if (bot.filters.odds.homeMax) filterTags.push(`Odds ≤ ${bot.filters.odds.homeMax}`);
+            if (bot.filters.behavior.combo) filterTags.push('COMBO');
+            if (bot.filters.behavior.type === 'prematch') filterTags.push('Pré-Jogo');
+            if (bot.filters.behavior.type === 'live') filterTags.push('Ao Vivo');
+
+            return `
+            <div class="bot-card">
+                <div class="bot-header">
+                    <div class="bot-name">
+                        <span class="bot-status ${statusClass}"></span>
+                        ${bot.name}
+                    </div>
+                    <div style="display:flex;gap:4px">
+                        <button class="btn btn-sm btn-secondary" onclick="toggleBot('${bot.id}')">
+                            ${bot.status === 'active' ? '⏸️' : '▶️'}
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteBot('${bot.id}')">🗑️</button>
+                    </div>
+                </div>
+                ${filterTags.length ? `<div class="bot-tags">${filterTags.map(t => `<span class="bot-tag">${t}</span>`).join('')}</div>` : ''}
+                <div class="bot-stats">
+                    <div class="bot-stat">
+                        <div class="bot-stat-value">${bot.stats.matches}</div>
+                        <div class="bot-stat-label">Jogos</div>
+                    </div>
+                    <div class="bot-stat">
+                        <div class="bot-stat-value">${bot.stats.alerts}</div>
+                        <div class="bot-stat-label">Alertas</div>
+                    </div>
+                    <div class="bot-stat">
+                        <div class="bot-stat-value positive">${bot.stats.wins}</div>
+                        <div class="bot-stat-label">Wins</div>
+                    </div>
+                    <div class="bot-stat">
+                        <div class="bot-stat-value">${bot.stats.accuracy}%</div>
+                        <div class="bot-stat-label">Precisão</div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ---- Bot Actions ----
+    function toggleBot(id) {
+        const bot = APP_STATE.bots.find(b => b.id === id);
+        if (bot) {
+            bot.status = bot.status === 'active' ? 'paused' : 'active';
+            saveBots();
+            renderBots();
+            updateHomeStats();
+            showToast(`Bot ${bot.status === 'active' ? 'ativado' : 'pausado'}`, 'info');
+        }
+    }
+
+    function deleteBot(id) {
+        if (confirm('Tem certeza que deseja eliminar este bot?')) {
+            APP_STATE.bots = APP_STATE.bots.filter(b => b.id !== id);
+            saveBots();
+            renderBots();
+            updateHomeStats();
+            showToast('Bot eliminado', 'info');
+        }
+    }
+
+    // ---- Filter Chips ----
+    function setBotFilter(filter, el) {
+        APP_STATE.currentBotFilter = filter;
+        el.parentElement.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        renderBots();
+    }
+
+    function setMatchFilter(filter, el) {
+        APP_STATE.currentMatchFilter = filter;
+        el.parentElement.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        renderMatches();
+    }
+
+    function setAnalysisView(view, el) {
+        el.parentElement.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        if (view === 'leagues') renderLeaguesList();
+    }
+
+    // ---- Preset Templates ----
+    function loadPreset(type) {
+        const presets = {
+            over25: { name: 'Over 2.5 Goals', goalsMin: 3, goalsMax: 10 },
+            btts: { name: 'BTTS Sim', btts: true },
+            corners: { name: 'Over 9.5 Cantos', cornersMin: 10, cornersMax: 20 },
+            favorite: { name: 'Favorito a Vencer', oddsHomeMax: 1.50 },
+            drawHT: { name: 'Empate Intervalo', firstHalf: true },
+            cards: { name: 'Over 3.5 Cartões', yellowMin: 4 },
+        };
+
+        const preset = presets[type];
+        if (!preset) return;
+
+        openModal('modal-bot-creator');
+        document.getElementById('bot-name').value = preset.name;
+
+        if (preset.goalsMin) document.getElementById('goals-min').value = preset.goalsMin;
+        if (preset.goalsMax) document.getElementById('goals-max').value = preset.goalsMax;
+        if (preset.btts) document.getElementById('filter-btts').checked = true;
+        if (preset.cornersMin) document.getElementById('corners-min').value = preset.cornersMin;
+        if (preset.cornersMax) document.getElementById('corners-max').value = preset.cornersMax;
+        if (preset.oddsHomeMax) document.getElementById('odds-home-max').value = preset.oddsHomeMax;
+        if (preset.firstHalf) document.getElementById('filter-first-half').checked = true;
+        if (preset.yellowMin) document.getElementById('yellow-cards-min').value = preset.yellowMin;
+
+        // Update display values
+        if (preset.goalsMin) updateRange(document.getElementById('goals-min'), 'goals-min-val');
+        if (preset.goalsMax) updateRange(document.getElementById('goals-max'), 'goals-max-val');
+        if (preset.cornersMin) updateRange(document.getElementById('corners-min'), 'corners-min-val');
+        if (preset.cornersMax) updateRange(document.getElementById('corners-max'), 'corners-max-val');
+
+        showToast(`Template "${preset.name}" carregado`, 'info');
+    }
+
+    // ---- League Selector ----
+    function openLeagueSelector() {
+        const content = document.getElementById('league-selector-content');
+        content.innerHTML = LEAGUES_DB.map(league => `
+            <div class="league-item" onclick="toggleLeague(${league.id}, this)">
+                <span class="league-flag">${league.flag}</span>
+                <div>
+                    <div class="league-name">${league.name}</div>
+                    <div class="league-country">${league.country}</div>
+                </div>
+                <div class="league-check ${APP_STATE.selectedLeagues.includes(league.id) ? 'selected' : ''}">
+                    ${APP_STATE.selectedLeagues.includes(league.id) ? '✓' : ''}
+                </div>
+            </div>
+        `).join('');
+        openModal('modal-leagues');
+    }
+
+    function toggleLeague(id, el) {
+        const idx = APP_STATE.selectedLeagues.indexOf(id);
+        if (idx > -1) {
+            APP_STATE.selectedLeagues.splice(idx, 1);
+        } else {
+            APP_STATE.selectedLeagues.push(id);
+        }
+        const check = el.querySelector('.league-check');
+        check.classList.toggle('selected');
+        check.textContent = APP_STATE.selectedLeagues.includes(id) ? '✓' : '';
+        document.getElementById('selected-leagues').textContent =
+            APP_STATE.selectedLeagues.length > 0
+                ? `${APP_STATE.selectedLeagues.length} liga(s) selecionada(s)`
+                : '';
+    }
+
+    // ---- Telegram Config ----
+    function openTelegramConfig() {
+        document.getElementById('telegram-token').value = APP_STATE.telegramConfig.token || '';
+        document.getElementById('telegram-chat-id').value = APP_STATE.telegramConfig.chatId || '';
+        openModal('modal-telegram');
+    }
+
+    function saveTelegramConfig() {
+        const token = document.getElementById('telegram-token').value.trim();
+        const chatId = document.getElementById('telegram-chat-id').value.trim();
+        if (!token || !chatId) {
+            showToast('Preencha todos os campos', 'error');
+            return;
+        }
+        APP_STATE.telegramConfig = { token, chatId };
+        localStorage.setItem('fb_telegram', JSON.stringify(APP_STATE.telegramConfig));
+        document.getElementById('telegram-status').textContent = '✅ Configurado';
+        closeModal('modal-telegram');
+        showToast('Telegram configurado com sucesso!', 'success');
+    }
+
+    async function getChatId() {
+        const token = document.getElementById('telegram-token').value.trim();
+        if (!token) {
+            showToast('Insira o token do bot primeiro', 'error');
+            return;
+        }
+        try {
+            const resp = await fetch(`https://api.telegram.org/bot${token}/getUpdates`);
+            const data = await resp.json();
+            if (data.ok && data.result.length > 0) {
+                const chatId = data.result[0].message.chat.id.toString();
+                document.getElementById('telegram-chat-id').value = chatId;
+                showToast(`Chat ID encontrado: ${chatId}`, 'success');
+            } else {
+                showToast('Envie uma mensagem ao bot primeiro e tente novamente', 'info');
+            }
+        } catch (e) {
+            showToast('Erro ao obter Chat ID', 'error');
+        }
+    }
+
+    async function testTelegram() {
+        const token = document.getElementById('telegram-token').value.trim();
+        const chatId = document.getElementById('telegram-chat-id').value.trim();
+        if (!token || !chatId) {
+            showToast('Preencha token e Chat ID', 'error');
+            return;
+        }
+        try {
+            const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: '⚽ FootballBot Pro — Teste de conexão!\n\n✅ As notificações estão a funcionar.',
+                    parse_mode: 'HTML'
+                })
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                showToast('Mensagem de teste enviada!', 'success');
+            } else {
+                showToast('Erro: ' + data.description, 'error');
+            }
+        } catch (e) {
+            showToast('Erro ao enviar mensagem', 'error');
+        }
+    }
+
+    // ---- API Config ----
+    function openApiConfig() {
+        document.getElementById('api-provider').value = APP_STATE.apiConfig.provider || 'demo';
+        document.getElementById('api-key').value = APP_STATE.apiConfig.key || '';
+        openModal('modal-api');
+    }
+
+    function saveApiConfig() {
+        APP_STATE.apiConfig = {
+            provider: document.getElementById('api-provider').value,
+            key: document.getElementById('api-key').value.trim()
+        };
+        localStorage.setItem('fb_api', JSON.stringify(APP_STATE.apiConfig));
+        document.getElementById('api-status').textContent =
+            APP_STATE.apiConfig.key ? '✅ ' + APP_STATE.apiConfig.provider : 'Modo Demo';
+        closeModal('modal-api');
+        showToast('Configuração de API guardada', 'success');
+        fetchMatches();
+    }
+
+    async function testApi() {
+        const provider = document.getElementById('api-provider').value;
+        const key = document.getElementById('api-key').value.trim();
+        if (provider !== 'demo' && !key) {
+            showToast('Insira a chave da API', 'error');
+            return;
+        }
+        showToast('A testar conexão...', 'info');
+        try {
+            if (provider === 'api-football') {
+                const resp = await fetch('https://v3.football.api-sports.io/fixtures?live=all', {
+                    headers: { 'x-apisports-key': key }
+                });
+                const data = await resp.json();
+                if (data.errors && Object.keys(data.errors).length > 0) {
+                    showToast('Erro: ' + JSON.stringify(data.errors), 'error');
+                } else {
+                    showToast(`✅ Conexão OK! ${data.results} jogos ao vivo`, 'success');
+                }
+            } else if (provider === 'football-data') {
+                const resp = await fetch('https://api.football-data.org/v4/competitions', {
+                    headers: { 'X-Auth-Token': key }
+                });
+                if (resp.ok) {
+                    showToast('✅ Conexão OK!', 'success');
+                } else {
+                    showToast('Erro na conexão', 'error');
+                }
+            } else {
+                showToast('✅ Modo Demo — sem necessidade de API', 'success');
+            }
+        } catch (e) {
+            showToast('Erro de rede: ' + e.message, 'error');
+        }
+    }
+
+    // ---- Data Fetching ----
+    async function fetchMatches() {
+        const { provider, key } = APP_STATE.apiConfig;
+
+        if (provider === 'demo' || !key) {
+            loadDemoData();
+            return;
+        }
+
+        try {
+            if (provider === 'api-football') {
+                const resp = await fetch('https://v3.football.api-sports.io/fixtures?live=all&timezone=Europe/Lisbon', {
+                    headers: { 'x-apisports-key': key }
+                });
+                const data = await resp.json();
+                APP_STATE.liveMatches = (data.response || []).map(f => ({
+                    id: f.fixture.id,
+                    league: f.league.name,
+                    country: f.league.country,
+                    leagueLogo: f.league.logo,
+                    homeTeam: f.teams.home.name,
+                    awayTeam: f.teams.away.name,
+                    homeLogo: f.teams.home.logo,
+                    awayLogo: f.teams.away.logo,
+                    homeScore: f.goals.home,
+                    awayScore: f.goals.away,
+                    status: f.fixture.status.short,
+                    elapsed: f.fixture.status.elapsed,
+                    timestamp: f.fixture.timestamp,
+                    odds: f.odds?.[0]?.odds || {},
+                }));
+            } else if (provider === 'football-data') {
+                const resp = await fetch('https://api.football-data.org/v4/matches?status=LIVE,IN_PLAY,PAUSED,SCHEDULED', {
+                    headers: { 'X-Auth-Token': key }
+                });
+                const data = await resp.json();
+                APP_STATE.liveMatches = (data.matches || []).map(m => ({
+                    id: m.id,
+                    league: m.competition.name,
+                    country: m.area.name,
+                    homeTeam: m.homeTeam.name,
+                    awayTeam: m.awayTeam.name,
+                    homeLogo: m.homeTeam.crest,
+                    awayLogo: m.awayTeam.crest,
+                    homeScore: m.score.fullTime.home,
+                    awayScore: m.score.fullTime.away,
+                    status: m.status,
+                    elapsed: m.minute || null,
+                    timestamp: new Date(m.utcDate).getTime() / 1000,
+                }));
+            }
+
+            renderMatches();
+            renderFeaturedMatches();
+            updateHomeStats();
+            runBotChecks();
+        } catch (e) {
+            console.error('Fetch error:', e);
+            showToast('Erro ao carregar dados', 'error');
+            loadDemoData();
+        }
+    }
+
+    // ---- Demo Data ----
+    function loadDemoData() {
+        APP_STATE.liveMatches = [
+            {
+                id: 1, league: 'Premier League', country: 'Inglaterra',
+                homeTeam: 'Arsenal', awayTeam: 'Chelsea',
+                homeScore: 2, awayScore: 1, status: '2H', elapsed: 67,
+                odds: { home: 1.45, draw: 4.50, away: 7.00 },
+                stats: { possession: [62, 38], shotsOnTarget: [6, 3], corners: [7, 4], yellowCards: [2, 3], xg: [2.1, 0.8] }
+            },
+            {
+                id: 2, league: 'La Liga', country: 'Espanha',
+                homeTeam: 'Barcelona', awayTeam: 'Real Madrid',
+                homeScore: 1, awayScore: 1, status: '1H', elapsed: 34,
+                odds: { home: 2.10, draw: 3.40, away: 3.50 },
+                stats: { possession: [55, 45], shotsOnTarget: [4, 5], corners: [5, 6], yellowCards: [1, 2], xg: [1.2, 1.5] }
+            },
+            {
+                id: 3, league: 'Serie A', country: 'Itália',
+                homeTeam: 'Inter Milan', awayTeam: 'Juventus',
+                homeScore: 0, awayScore: 0, status: '1H', elapsed: 12,
+                odds: { home: 1.85, draw: 3.60, away: 4.20 },
+                stats: { possession: [48, 52], shotsOnTarget: [1, 2], corners: [2, 3], yellowCards: [0, 1], xg: [0.3, 0.5] }
+            },
+            {
+                id: 4, league: 'Bundesliga', country: 'Alemanha',
+                homeTeam: 'Bayern Munich', awayTeam: 'Dortmund',
+                homeScore: 3, awayScore: 2, status: '2H', elapsed: 78,
+                odds: { home: 1.30, draw: 5.50, away: 9.00 },
+                stats: { possession: [58, 42], shotsOnTarget: [8, 4], corners: [9, 3], yellowCards: [1, 2], xg: [2.8, 1.4] }
+            },
+            {
+                id: 5, league: 'Primeira Liga', country: 'Portugal',
+                homeTeam: 'Benfica', awayTeam: 'Porto',
+                homeScore: 1, awayScore: 0, status: '2H', elapsed: 55,
+                odds: { home: 1.60, draw: 3.80, away: 5.50 },
+                stats: { possession: [52, 48], shotsOnTarget: [5, 3], corners: [6, 5], yellowCards: [2, 3], xg: [1.4, 0.9] }
+            },
+            {
+                id: 6, league: 'Ligue 1', country: 'França',
+                homeTeam: 'PSG', awayTeam: 'Marseille',
+                homeScore: 2, awayScore: 0, status: '2H', elapsed: 88,
+                odds: { home: 1.20, draw: 6.00, away: 12.00 },
+                stats: { possession: [65, 35], shotsOnTarget: [7, 2], corners: [8, 2], yellowCards: [1, 4], xg: [2.5, 0.4] }
+            },
+            {
+                id: 7, league: 'Eredivisie', country: 'Holanda',
+                homeTeam: 'Ajax', awayTeam: 'PSV',
+                homeScore: 0, awayScore: 0, status: 'NS', elapsed: null,
+                odds: { home: 2.30, draw: 3.30, away: 3.10 },
+                stats: null
+            },
+            {
+                id: 8, league: 'Champions League', country: 'Europa',
+                homeTeam: 'Man City', awayTeam: 'Liverpool',
+                homeScore: null, awayScore: null, status: 'NS', elapsed: null,
+                odds: { home: 1.90, draw: 3.50, away: 4.00 },
+                stats: null
+            },
+            {
+                id: 9, league: 'Serie A', country: 'Brasil',
+                homeTeam: 'Flamengo', awayTeam: 'Palmeiras',
+                homeScore: 1, awayScore: 2, status: 'FT', elapsed: 90,
+                odds: { home: 2.20, draw: 3.30, away: 3.20 },
+                stats: { possession: [54, 46], shotsOnTarget: [5, 6], corners: [7, 5], yellowCards: [3, 2], xg: [1.3, 1.8] }
+            },
+            {
+                id: 10, league: 'MLS', country: 'EUA',
+                homeTeam: 'Inter Miami', awayTeam: 'LA Galaxy',
+                homeScore: 3, awayScore: 1, status: '2H', elapsed: 72,
+                odds: { home: 1.70, draw: 3.70, away: 4.80 },
+                stats: { possession: [60, 40], shotsOnTarget: [7, 3], corners: [8, 4], yellowCards: [1, 2], xg: [2.6, 0.7] }
+            },
+        ];
+
+        renderMatches();
+        renderFeaturedMatches();
+        renderLeaguesList();
+        updateHomeStats();
+        runBotChecks();
+    }
+
+    // ---- Render Matches ----
+    function renderMatches() {
+        const container = document.getElementById('matches-list');
+        let matches = [...APP_STATE.liveMatches];
+        const search = document.getElementById('match-search')?.value?.toLowerCase() || '';
+
+        // Filter by status
+        if (APP_STATE.currentMatchFilter === 'live') {
+            matches = matches.filter(m => ['1H', '2H', 'HT', 'ET', 'P'].includes(m.status));
+        } else if (APP_STATE.currentMatchFilter === 'upcoming') {
+            matches = matches.filter(m => ['NS', 'TBD', 'SUSP'].includes(m.status));
+        } else if (APP_STATE.currentMatchFilter === 'finished') {
+            matches = matches.filter(m => ['FT', 'AET', 'PEN'].includes(m.status));
+        }
+
+        // Search
+        if (search) {
+            matches = matches.filter(m =>
+                m.homeTeam.toLowerCase().includes(search) ||
+                m.awayTeam.toLowerCase().includes(search) ||
+                m.league.toLowerCase().includes(search)
+            );
+        }
+
+        if (matches.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">⚽</div>
+                    <div class="title">Nenhum jogo encontrado</div>
+                    <div class="desc">Tente ajustar os filtros ou pesquisar por outro termo</div>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = matches.map(m => renderMatchCard(m)).join('');
+    }
+
+    function renderMatchCard(m) {
+        const isLive = ['1H', '2H', 'HT', 'ET', 'P'].includes(m.status);
+        const isFinished = ['FT', 'AET', 'PEN'].includes(m.status);
+        const isUpcoming = ['NS', 'TBD'].includes(m.status);
+
+        let timeDisplay = '';
+        if (isLive) timeDisplay = `${m.elapsed || '?'}'`;
+        else if (isFinished) timeDisplay = 'Encerrado';
+        else if (m.status === 'HT') timeDisplay = 'Intervalo';
+        else timeDisplay = 'Agendado';
+
+        const hasStats = m.stats !== null;
+        const indicators = [];
+
+        // Compute indicators
+        if (hasStats) {
+            const totalGoals = (m.homeScore || 0) + (m.awayScore || 0);
+            if (totalGoals >= 3) indicators.push({ text: '🔥 FIRE', cls: 'fire' });
+            if (m.stats.corners && (m.stats.corners[0] + m.stats.corners[1]) >= 8) indicators.push({ text: '🚩 Cantos', cls: 'ball' });
+            if (m.stats.xg && (m.stats.xg[0] + m.stats.xg[1]) >= 2.5) indicators.push({ text: '📊 xG Alto', cls: 'info-ind' });
+            if (m.stats.yellowCards && (m.stats.yellowCards[0] + m.stats.yellowCards[1]) >= 4) indicators.push({ text: '🟨 Cartões', cls: 'danger-ind' });
+            if (totalGoals >= 1 && m.homeScore > 0 && m.awayScore > 0) indicators.push({ text: '⚽ BTTS', cls: 'ball' });
+        }
+
+        return `
+        <div class="match-card" onclick="showMatchDetail(${m.id})">
+            <div class="match-league">
+                <span>${m.league}</span>
+                ${isLive ? '<span><span class="live-dot"></span> AO VIVO</span>' : ''}
+            </div>
+            <div class="match-body">
+                <div class="match-teams">
+                    <div class="match-team">
+                        <div class="team-logo">${m.homeTeam.charAt(0)}</div>
+                        <div class="team-name">${m.homeTeam}</div>
+                    </div>
+                    <div class="match-score">
+                        <div class="score-display">${isUpcoming ? 'vs' : `${m.homeScore ?? '-'} : ${m.awayScore ?? '-'}`}</div>
+                        <div class="score-time ${isLive ? 'live' : ''}">${timeDisplay}</div>
+                    </div>
+                    <div class="match-team away">
+                        <div class="team-logo">${m.awayTeam.charAt(0)}</div>
+                        <div class="team-name">${m.awayTeam}</div>
+                    </div>
+                </div>
+                ${m.odds ? `
+                <div class="match-odds">
+                    <div class="odd-btn">
+                        <span class="odd-label">Casa</span>
+                        <span class="odd-value">${m.odds.home?.toFixed(2) || '-'}</span>
+                    </div>
+                    <div class="odd-btn">
+                        <span class="odd-label">Empate</span>
+                        <span class="odd-value">${m.odds.draw?.toFixed(2) || '-'}</span>
+                    </div>
+                    <div class="odd-btn">
+                        <span class="odd-label">Fora</span>
+                        <span class="odd-value">${m.odds.away?.toFixed(2) || '-'}</span>
+                    </div>
+                </div>` : ''}
+                ${indicators.length ? `
+                <div class="match-indicators">
+                    ${indicators.map(i => `<span class="indicator ${i.cls}">${i.text}</span>`).join('')}
+                </div>` : ''}
+            </div>
+        </div>`;
+    }
+
+    // ---- Featured Matches ----
+    function renderFeaturedMatches() {
+        const container = document.getElementById('featured-matches');
+        const featured = APP_STATE.liveMatches.filter(m =>
+            ['1H', '2H', 'HT'].includes(m.status)
+        ).slice(0, 3);
+
+        if (featured.length === 0) {
+            container.innerHTML = '<div class="empty-state"><div class="icon">📺</div><div class="title">Sem jogos ao vivo</div><div class="desc">Os jogos em destaque aparecerão aqui quando estiverem ao vivo</div></div>';
+            return;
+        }
+
+        container.innerHTML = featured.map(m => renderMatchCard(m)).join('');
+    }
+
+    // ---- Match Detail ----
+    function showMatchDetail(id) {
+        const match = APP_STATE.liveMatches.find(m => m.id === id);
+        if (!match) return;
+
+        const content = document.getElementById('match-detail-content');
+        const isLive = ['1H', '2H', 'HT', 'ET'].includes(match.status);
+
+        let statsHtml = '';
+        if (match.stats) {
+            const s = match.stats;
+            const statItems = [
+                { label: 'Posse de Bola', home: s.possession[0], away: s.possession[1], unit: '%' },
+                { label: 'Remates à Baliza', home: s.shotsOnTarget[0], away: s.shotsOnTarget[1] },
+                { label: 'Cantos', home: s.corners[0], away: s.corners[1] },
+                { label: 'Cartões Amarelos', home: s.yellowCards[0], away: s.yellowCards[1] },
+                { label: 'xG', home: s.xg[0], away: s.xg[1] },
+            ];
+
+            statsHtml = statItems.map(si => {
+                const total = si.home + si.away;
+                const homePct = total > 0 ? (si.home / total * 100) : 50;
+                return `
+                <div class="stat-bar-container">
+                    <div class="stat-bar-label">
+                        <span>${si.home}${si.unit || ''}</span>
+                        <span>${si.label}</span>
+                        <span>${si.away}${si.unit || ''}</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill home" style="width:${homePct}%"></div>
+                        <div class="stat-bar-fill away" style="width:${100 - homePct}%"></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Forecast
+        const totalGoals = (match.homeScore || 0) + (match.awayScore || 0);
+        let forecast = '';
+        if (match.stats?.xg) {
+            const totalXg = match.stats.xg[0] + match.stats.xg[1];
+            forecast = `
+            <div class="card" style="margin-top:14px">
+                <div style="font-size:13px;font-weight:700;margin-bottom:8px">🎯 Previsão</div>
+                <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+                    <div>xG Total: <strong>${totalXg.toFixed(1)}</strong></div>
+                    <div>Prob. Over 2.5: <strong>${Math.min(95, Math.round(totalXg * 30))}%</strong></div>
+                    <div>Prob. BTTS: <strong>${Math.min(95, Math.round((match.stats.xg[0] > 0.5 && match.stats.xg[1] > 0.5 ? 70 : 35)))}%</strong></div>
+                    <div>Forma: <strong>${isLive ? 'Ao vivo' : match.status === 'FT' ? 'Encerrado' : 'Pré-jogo'}</strong></div>
+                </div>
+            </div>`;
+        }
+
+        content.innerHTML = `
+            <div style="text-align:center;margin-bottom:14px">
+                <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">${match.league}</div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:8px">
+                    <div style="text-align:center">
+                        <div style="font-size:28px">${match.homeTeam.charAt(0)}</div>
+                        <div style="font-size:13px;font-weight:700">${match.homeTeam}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:28px;font-weight:800">${match.homeScore ?? '-'} : ${match.awayScore ?? '-'}</div>
+                        <div style="font-size:12px;color:${isLive ? 'var(--danger)' : 'var(--text-dim)'};text-align:center;font-weight:600">${isLive ? match.elapsed + "'" : match.status}</div>
+                    </div>
+                    <div style="text-align:center">
+                        <div style="font-size:28px">${match.awayTeam.charAt(0)}</div>
+                        <div style="font-size:13px;font-weight:700">${match.awayTeam}</div>
+                    </div>
+                </div>
+            </div>
+            ${statsHtml ? `<div class="card"><div style="font-size:13px;font-weight:700;margin-bottom:10px">📊 Estatísticas</div>${statsHtml}</div>` : ''}
+            ${forecast}
+            <button class="btn btn-primary" style="margin-top:14px" onclick="createBotFromMatch(${match.id})">
+                🤖 Criar Bot para este Jogo
+            </button>
+        `;
+
+        openModal('modal-match-detail');
+    }
+
+    function createBotFromMatch(id) {
+        closeModal('modal-match-detail');
+        openBotCreator();
+        const match = APP_STATE.liveMatches.find(m => m.id === id);
+        if (match) {
+            document.getElementById('bot-name').value = `${match.homeTeam} vs ${match.awayTeam}`;
+        }
+    }
+
+    // ---- Bot Filter Engine ----
+    function runBotChecks() {
+        const activeBots = APP_STATE.bots.filter(b => b.status === 'active');
+        if (activeBots.length === 0) return;
+
+        const liveMatches = APP_STATE.liveMatches.filter(m => ['1H', '2H', 'HT'].includes(m.status));
+
+        for (const bot of activeBots) {
+            for (const match of liveMatches) {
+                if (checkMatchAgainstFilters(match, bot.filters)) {
+                    const existingAlert = APP_STATE.alerts.find(a => a.botId === bot.id && a.matchId === match.id && !a.dismissed);
+                    if (!existingAlert) {
+                        const alert = {
+                            id: Date.now().toString(36),
+                            botId: bot.id,
+                            botName: bot.name,
+                            matchId: match.id,
+                            match: `${match.homeTeam} vs ${match.awayTeam}`,
+                            league: match.league,
+                            message: generateAlertMessage(match, bot),
+                            type: getAlertType(match, bot),
+                            timestamp: new Date().toISOString(),
+                            dismissed: false,
+                        };
+                        APP_STATE.alerts.unshift(alert);
+                        bot.stats.alerts++;
+                        bot.stats.matches++;
+
+                        // Send Telegram notification
+                        sendTelegramNotification(alert);
+
+                        // Browser notification
+                        if (APP_STATE.settings.pushNotifications !== false) {
+                            showBrowserNotification(alert);
+                        }
+                    }
+                }
+            }
+        }
+
+        saveBots();
+        localStorage.setItem('fb_alerts', JSON.stringify(APP_STATE.alerts));
+        renderAlerts();
+        updateHomeStats();
+    }
+
+    function checkMatchAgainstFilters(match, filters) {
+        if (!match.stats) return false;
+        const s = match.stats;
+        const totalGoals = (match.homeScore || 0) + (match.awayScore || 0);
+        const totalCorners = s.corners ? s.corners[0] + s.corners[1] : 0;
+        const totalYellow = s.yellowCards ? s.yellowCards[0] + s.yellowCards[1] : 0;
+
+        // Goals
+        if (totalGoals < filters.goals.min || totalGoals > filters.goals.max) return false;
+        if (filters.goals.btts && (match.homeScore === 0 || match.awayScore === 0)) return false;
+        if (filters.goals.homeMin && match.homeScore < filters.goals.homeMin) return false;
+        if (filters.goals.awayMin && match.awayScore < filters.goals.awayMin) return false;
+
+        // Corners
+        if (totalCorners < filters.corners.min || totalCorners > filters.corners.max) return false;
+
+        // Cards
+        if (filters.cards.yellowMin && totalYellow < filters.cards.yellowMin) return false;
+        if (filters.cards.redMin) {
+            const totalRed = s.redCards ? s.redCards[0] + s.redCards[1] : 0;
+            if (totalRed < filters.cards.redMin) return false;
+        }
+
+        // Odds (pre-match)
+        if (match.odds) {
+            if (filters.odds.homeMin && match.odds.home < filters.odds.homeMin) return false;
+            if (filters.odds.homeMax && match.odds.home > filters.odds.homeMax) return false;
+            if (filters.odds.drawMin && match.odds.draw < filters.odds.drawMin) return false;
+            if (filters.odds.drawMax && match.odds.draw > filters.odds.drawMax) return false;
+            if (filters.odds.awayMin && match.odds.away < filters.odds.awayMin) return false;
+            if (filters.odds.awayMax && match.odds.away > filters.odds.awayMax) return false;
+        }
+
+        // Time
+        if (match.elapsed) {
+            if (match.elapsed < filters.time.minuteMin || match.elapsed > filters.time.minuteMax) return false;
+            if (filters.time.firstHalf && match.elapsed > 45) return false;
+            if (filters.time.secondHalf && match.elapsed <= 45) return false;
+        }
+
+        // Stats
+        if (filters.stats.possessionMin && s.possession && s.possession[0] < filters.stats.possessionMin) return false;
+        if (filters.stats.shotsOnTargetMin && s.shotsOnTarget && (s.shotsOnTarget[0] + s.shotsOnTarget[1]) < filters.stats.shotsOnTargetMin) return false;
+        if (filters.stats.xgMin && s.xg && (s.xg[0] + s.xg[1]) < filters.stats.xgMin) return false;
+
+        // Leagues
+        if (!filters.leagues.all && filters.leagues.selected.length > 0) {
+            // Simple match - in real app would map league name to ID
+        }
+
+        return true;
+    }
+
+    function generateAlertMessage(match, bot) {
+        const goals = (match.homeScore || 0) + (match.awayScore || 0);
+        const parts = [];
+        parts.push(`⚽ ${match.homeTeam} ${match.homeScore} - ${match.awayScore} ${match.awayTeam}`);
+        parts.push(`⏱ ${match.elapsed}' | ${match.league}`);
+
+        if (match.stats) {
+            const s = match.stats;
+            if (s.corners) parts.push(`🚩 Cantos: ${s.corners[0] + s.corners[1]}`);
+            if (s.xg) parts.push(`📊 xG: ${(s.xg[0] + s.xg[1]).toFixed(1)}`);
+            if (match.odds) parts.push(`📈 Odds: ${match.odds.home?.toFixed(2)} / ${match.odds.draw?.toFixed(2)} / ${match.odds.away?.toFixed(2)}`);
+        }
+
+        return parts.join('\n');
+    }
+
+    function getAlertType(match, bot) {
+        const goals = (match.homeScore || 0) + (match.awayScore || 0);
+        if (goals >= 4) return 'fire';
+        if (bot.filters.behavior.combo) return 'fire';
+        return 'normal';
+    }
+
+    // ---- Telegram Notification ----
+    async function sendTelegramNotification(alert) {
+        const { token, chatId } = APP_STATE.telegramConfig;
+        if (!token || !chatId) return;
+
+        try {
+            const text = `🤖 <b>${alert.botName}</b>\n\n${alert.message}\n\n${alert.type === 'fire' ? '🔥 FIRE ALERT!' : '✅ Alert triggered'}`;
+            await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: text,
+                    parse_mode: 'HTML'
+                })
+            });
+        } catch (e) {
+            console.error('Telegram error:', e);
+        }
+    }
+
+    // ---- Browser Notification ----
+    function showBrowserNotification(alert) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(`⚽ ${alert.botName}`, {
+                body: alert.match,
+                icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⚽</text></svg>',
+                tag: alert.id,
+            });
+        }
+        // Vibrate
+        if (navigator.vibrate && APP_STATE.settings.vibrate !== false) {
+            navigator.vibrate(alert.type === 'fire' ? [200, 100, 200, 100, 200] : [200]);
+        }
+    }
+
+    // ---- Render Alerts ----
+    function renderAlerts() {
+        const container = document.getElementById('recent-alerts');
+        const recent = APP_STATE.alerts.filter(a => !a.dismissed).slice(0, 10);
+
+        if (recent.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">🔔</div>
+                    <div class="title">Sem alertas ainda</div>
+                    <div class="desc">Crie um bot e ative-o para receber alertas em tempo real</div>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = recent.map(a => `
+            <div class="alert-card ${a.type === 'fire' ? 'fire-alert' : ''}">
+                <div class="alert-header">
+                    <div class="alert-title">${a.botName}</div>
+                    <div class="alert-time">${new Date(a.timestamp).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+                <div class="alert-body" style="white-space:pre-line">${a.message}</div>
+            </div>
+        `).join('');
+
+        document.getElementById('alert-badge').textContent = recent.length;
+    }
+
+    // ---- Update Home Stats ----
+    function updateHomeStats() {
+        const live = APP_STATE.liveMatches.filter(m => ['1H', '2H', 'HT'].includes(m.status));
+        const activeBots = APP_STATE.bots.filter(b => b.status === 'active');
+        const todayAlerts = APP_STATE.alerts.filter(a => {
+            const d = new Date(a.timestamp);
+            const today = new Date();
+            return d.toDateString() === today.toDateString();
+        });
+
+        document.getElementById('live-count').textContent = live.length;
+        document.getElementById('active-bots').textContent = activeBots.length;
+        document.getElementById('alerts-today').textContent = todayAlerts.length;
+
+        // Win rate
+        const allMatches = APP_STATE.bots.reduce((sum, b) => sum + b.stats.matches, 0);
+        const allWins = APP_STATE.bots.reduce((sum, b) => sum + b.stats.wins, 0);
+        document.getElementById('win-rate').textContent = allMatches > 0 ? Math.round(allWins / allMatches * 100) + '%' : '--%';
+    }
+
+    // ---- Leagues List ----
+    function renderLeaguesList() {
+        const container = document.getElementById('leagues-list');
+        container.innerHTML = LEAGUES_DB.slice(0, 12).map(l => `
+            <div class="league-item" onclick="showToast('Liga: ${l.name}', 'info')">
+                <span class="league-flag">${l.flag}</span>
+                <div>
+                    <div class="league-name">${l.name}</div>
+                    <div class="league-country">${l.country}</div>
+                </div>
+                <div style="margin-left:auto;font-size:12px;color:var(--text-dim)">›</div>
+            </div>
+        `).join('');
+    }
+
+    // ---- Search ----
+    function filterMatches() {
+        renderMatches();
+    }
+
+    // ---- Settings ----
+    function showSettings() {
+        switchTab('settings', document.querySelectorAll('.tab-item')[4]);
+    }
+
+    function showNotifications() {
+        switchTab('home', document.querySelectorAll('.tab-item')[0]);
+        setTimeout(() => {
+            document.getElementById('recent-alerts').scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    }
+
+    function clearCache() {
+        if (confirm('Limpar todo o cache de dados?')) {
+            localStorage.removeItem('fb_alerts');
+            APP_STATE.alerts = [];
+            renderAlerts();
+            updateHomeStats();
+            showToast('Cache limpo', 'success');
+        }
+    }
+
+    function exportData() {
+        const data = {
+            bots: APP_STATE.bots,
+            settings: APP_STATE.settings,
+            telegramConfig: APP_STATE.telegramConfig,
+            apiConfig: APP_STATE.apiConfig,
+            exportDate: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `footballbot-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Dados exportados', 'success');
+    }
+
+    function importData() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (data.bots) APP_STATE.bots = data.bots;
+                    if (data.settings) APP_STATE.settings = data.settings;
+                    if (data.telegramConfig) APP_STATE.telegramConfig = data.telegramConfig;
+                    if (data.apiConfig) APP_STATE.apiConfig = data.apiConfig;
+                    saveBots();
+                    localStorage.setItem('fb_settings', JSON.stringify(APP_STATE.settings));
+                    localStorage.setItem('fb_telegram', JSON.stringify(APP_STATE.telegramConfig));
+                    localStorage.setItem('fb_api', JSON.stringify(APP_STATE.apiConfig));
+                    renderBots();
+                    updateHomeStats();
+                    showToast('Dados importados com sucesso!', 'success');
+                } catch (err) {
+                    showToast('Erro ao importar dados', 'error');
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
+    }
+
+    // ---- PWA Install ----
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('install-banner').classList.remove('hidden');
+    });
+
+    document.getElementById('install-btn').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const result = await deferredPrompt.userChoice;
+            if (result.outcome === 'accepted') {
+                showToast('App instalado!', 'success');
+                document.getElementById('install-banner').classList.add('hidden');
+            }
+            deferredPrompt = null;
+        }
+    });
+
+    // ---- Notification Permission ----
+    if ('Notification' in window && Notification.permission === 'default') {
+        setTimeout(() => Notification.requestPermission(), 3000);
+    }
+
+    // ---- Auto Refresh ----
+    setInterval(() => {
+        fetchMatches();
+    }, 60000); // Every 60 seconds
+
+    // ---- Init ----
+    function init() {
+        // Load settings
+        document.getElementById('api-status').textContent =
+            APP_STATE.apiConfig.key ? '✅ ' + APP_STATE.apiConfig.provider : 'Modo Demo';
+        document.getElementById('telegram-status').textContent =
+            APP_STATE.telegramConfig.token ? '✅ Configurado' : 'Não configurado';
+
+        // Render
+        renderBots();
+        renderAlerts();
+        renderLeaguesList();
+
+        // Fetch data
+        fetchMatches();
+    }
+
+    init();
+    </script>
+</body>
+</html>
